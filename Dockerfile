@@ -1,8 +1,8 @@
-FROM node:16
+FROM node:18
 
 # Install Java
 RUN apt-get update && \
-    apt-get install -y openjdk-11-jdk
+    apt-get install -y openjdk-17-jdk
 
 # Install curl
 RUN apt-get install -y curl
