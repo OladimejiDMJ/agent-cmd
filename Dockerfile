@@ -1,35 +1,39 @@
-FROM node:18
+# Use Docker-in-Docker base image
+FROM docker:20.10-dind
+
+# Install bash
+RUN apk add --no-cache bash
+
+# Install Node.js
+RUN apk add --no-cache nodejs npm
 
 # Install Java
-RUN apt-get update && \
-    apt-get install -y openjdk-17-jdk
+RUN apk add --no-cache openjdk17-jdk
 
 # Install curl
-RUN apt-get install -y curl
+RUN apk add --no-cache curl
 
-# Install AWS CLI
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
-    rm awscliv2.zip
+# Install libc6-compat for glibc compatibility
+RUN apk add --no-cache libc6-compat
+
+# Install AWS CLI via pip for compatibility with Alpine
+RUN apk add --no-cache python3 py3-pip && \
+    pip install --no-cache-dir awscli
 
 # Install Helm
 RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-# # Install Docker CE
-RUN apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg \
-    lsb-release
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-RUN echo \
-    "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \
-    $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-RUN apt-get update && apt-get install -y docker-ce-cli
+# Install Docker CLI
+RUN apk add --no-cache docker-cli
 
+# Expose Docker daemon port
+EXPOSE 2375
 
-
+# Set the default working directory
 WORKDIR /app
+
+# Start Docker daemon
+ENTRYPOINT ["dockerd-entrypoint.sh"]
+
+# Default command
 CMD ["bash"]
