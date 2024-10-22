@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dmj
+  labels:
+    app: dmj
+spec:
+  containers:
+  - name: docker
+    image: docker:20.10.12
+    tty: true
+    securityContext:
+        privileged: true
+    volumeMounts:
+    - name: docker-socket
+      mountPath: /var/run/docker.sock
+  - name: avalanche-agent
+    image: dmj/{image_name}:{tag}
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-socket
+      mountPath: /var/run/docker.sock
+    - name: aws-credentials
+      mountPath: /root/.aws
+      readOnly: true
+    - name: sqlpad
+      mountPath: /workspace
+  imagePullSecrets:
+  - name: regcred
+  volumes:
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock
+  - name: aws-credentials
+    secret:
+      secretName: aws-credentials
+  - name: dmj
+    emptyDir: {}
